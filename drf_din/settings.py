@@ -15,7 +15,6 @@ import os
 from dotenv import load_dotenv
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
@@ -49,10 +48,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # django rest_framework (DRF)
     'rest_framework',
 
     # my apps
     'users',
+    'course_app',
 ]
 
 MIDDLEWARE = [
@@ -70,8 +71,7 @@ ROOT_URLCONF = 'drf_din.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -169,13 +169,14 @@ EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL') == 'True'
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# CASHE_ENABLED = True
-CASHE_ENABLED = False
+# CACHE_ENABLED = True
+CACHE_ENABLED = False
 
-if CASHE_ENABLED:
+if CACHE_ENABLED:
     CACHES = {
         "default": {
             "BACKEND":  os.getenv('BACKEND'),
             "LOCATION": os.getenv('LOCATION'),
             }
         }
+
