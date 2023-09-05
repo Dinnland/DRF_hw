@@ -30,7 +30,8 @@ class Lesson(models.Model):
     description = models.TextField(verbose_name='описание')
     video_url = models.CharField(max_length=300, verbose_name='ссылка на видео', **NULLABLE)
 
-    course_url = models.CharField(max_length=300, verbose_name='ссылка на курс', **NULLABLE)
+    course = models.ForeignKey('Course', on_delete=models.SET_NULL,
+                               verbose_name='ссылка на курс', related_name='lessons', **NULLABLE)
 
     # def __int__(self):
     #     return f'{self.email} {self.name} {self.surname}'

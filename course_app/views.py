@@ -1,12 +1,19 @@
 from rest_framework import viewsets, generics
+from rest_framework.generics import ListAPIView
 
 from course_app.models import Course, Lesson
-from course_app.serializers import CourseSerializer, LessonSerializer
+from course_app.serializers.serializers import CourseSerializer, LessonSerializer, CourseListSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
     """ Это ViewSet для Course """
     serializer_class = CourseSerializer
+    queryset = Course.objects.all()
+
+
+class CourseListAPIView(ListAPIView):
+    """ Это ViewSet для Course """
+    serializer_class = CourseListSerializer
     queryset = Course.objects.all()
 
 
