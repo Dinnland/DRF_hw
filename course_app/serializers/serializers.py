@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework.relations import SlugRelatedField
 
-from course_app.models import Course, Lesson
+from course_app.models import Course, Lesson, Payment
 
 
 # Это сериализатор \/
@@ -21,6 +21,8 @@ class LessonSerializer(serializers.ModelSerializer):
 class CourseListSerializer(serializers.ModelSerializer):
     count_of_lessons = serializers.SerializerMethodField()
 
+    lesson = LessonSerializer(source='lessons', many=True)
+
     class Meta:
         model = Course
         fields = '__all__'
@@ -28,6 +30,11 @@ class CourseListSerializer(serializers.ModelSerializer):
     def get_count_of_lessons(self, instance):
         return instance.lessons.all().count()
 
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = '__all__'
 
 # class CourseListSerializer(serializers.ModelSerializer):
 #     """1.1 Выводит в списке курсов первый по списку урок"""

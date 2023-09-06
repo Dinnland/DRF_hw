@@ -50,11 +50,19 @@ INSTALLED_APPS = [
 
     # django rest_framework (DRF)
     'rest_framework',
+    'django_filters',
 
     # my apps
     'users',
     'course_app',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+
+    ),
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -179,4 +187,5 @@ if CACHE_ENABLED:
             "LOCATION": os.getenv('LOCATION'),
             }
         }
+
 
