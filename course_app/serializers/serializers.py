@@ -19,16 +19,20 @@ class LessonSerializer(serializers.ModelSerializer):
 
 
 class CourseListSerializer(serializers.ModelSerializer):
-    count_of_lessons = serializers.SerializerMethodField()
+    count_of_lessons = serializers.SerializerMethodField()  # read_only=True
+    lesson = LessonSerializer(source='lessons', many=True, read_only=True)
+    # lesson = SerializerMethodField(read_only=True)
 
-    lesson = LessonSerializer(source='lessons', many=True)
 
     class Meta:
         model = Course
         fields = '__all__'
 
     def get_count_of_lessons(self, instance):
-        return instance.lessons.all().count()
+        if instance.lessons:
+            return instance.lessons.all().count()
+        # else:
+        #     return 0
 
 
 class PaymentSerializer(serializers.ModelSerializer):
