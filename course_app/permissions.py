@@ -27,28 +27,28 @@ class IsNotModerator(BasePermission):
 class ModeratorPermission(BasePermission):
 
     def has_permission(self, request, view, *args, **kwargs):
-
-        if request.user.groups.filter(name='moderator').exists() or request.user != view.get_object().owner:
-            print('opa chiric')
+        if request.user.groups.filter(name='moderator').exists() or request.user.pk != view.get_object().owner:
             if request.method.upper() in ['DELETE', 'POST']:
                 return request.user.has_perms([
                     'course_app.create_course',
                     'course_app.delete_course',
                 ])
-            # else:
-            #     return False
-        return True
+        # return True
+        return request.user.is_authenticated
+    # def has_object_permission(self, request, view, obj):
+    #     return request.user == obj.owner
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.owner
+        return request.user.groups.filter(name='moderator').exists() or request.user == obj.owner
 
 
+class IsOwner(BasePermission):
+    """Доступ хозяину"""
 
-    # def get_queryset(self, queryset=None):
-    #     self.queryset = queryset
-    #     self.queryset = None
-    #     return queryset
-
+    def has_permission(self, request, view):
+        # owner
+        if request.user == view.get_object().owner:
+            return True
 
 # class IsOwnerOrStaffOrModerator(BasePermission):
 #     """Доступ хозяину и модератору"""
@@ -63,15 +63,6 @@ class ModeratorPermission(BasePermission):
 #
 #     def has_object_permission(self, request, view, obj):
 #         return request.user.groups.filter(name='moderator').exists() or request.user == obj.owner
-
-
-# class IsOwner(BasePermission):
-#     """Доступ хозяину"""
-#
-#     def has_permission(self, request, view):
-#         # owner
-#         if request.user == view.get_object().owner:
-#             return True
 
 
 # class IsOwnerOrStaff(BasePermission):

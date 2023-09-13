@@ -7,11 +7,6 @@ from course_app.validators import VideoUrlValidator
 
 
 # Это сериализатор \/
-# class CourseSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Course
-#         fields = '__all__'
-
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,15 +14,16 @@ class LessonSerializer(serializers.ModelSerializer):
         fields = '__all__'
         validators = [VideoUrlValidator(fields=['video_url'])]
 
+
 class CourseSerializer(serializers.ModelSerializer):
     count_of_lessons = serializers.SerializerMethodField()  # read_only=True
     lesson = LessonSerializer(source='lessons', many=True, read_only=True)
     # lesson = SerializerMethodField(read_only=True)
 
-
     class Meta:
         model = Course
         fields = '__all__'
+        validators = [VideoUrlValidator(fields=['name', 'description'])]
 
     def get_count_of_lessons(self, instance):
         if instance.lessons:
@@ -40,6 +36,13 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
+
+
+# class CourseSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Course
+#         fields = '__all__'
+
 
 # class CourseListSerializer(serializers.ModelSerializer):
 #     """1.1 Выводит в списке курсов первый по списку урок"""
@@ -72,6 +75,3 @@ class PaymentSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Course
 #         fields = '__all__'
-
-
-
