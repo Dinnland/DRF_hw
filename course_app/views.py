@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from course_app.models import Course, Lesson, Payment
-from course_app.permissions import IsOwnerOrStaffOrModerator, IsNotModerator, ModeratorPermission
+from course_app.permissions import IsOwnerOrStaffOrModerator, IsNotModerator, ModeratorPermission, IsOwner
 from course_app.serializers.serializers import CourseSerializer, LessonSerializer, PaymentSerializer
 
 
@@ -14,17 +14,17 @@ class CourseViewSet(viewsets.ModelViewSet):
     """ Это ViewSet для Course """
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
-    permission_classes = [ModeratorPermission]
+    # permission_classes = [ModeratorPermission]
 
-    # def get_permissions(self):
-    #     """
-    #     Instantiates and returns the list,destroy of permissions that this view requires.
-    #     """
-    #     if self.action == 'create' or self.action == 'destroy':
-    #         permission_classes = [IsAuthenticated, IsNotModerator]
-    #     else:
-    #         permission_classes = [IsAuthenticated, IsOwnerOrStaff]
-    #     return [permission() for permission in permission_classes]
+    def get_permissions(self):
+        """
+        Instantiates and returns the list,destroy of permissions that this view requires.
+        """
+        if self.action == 'create' or self.action == 'destroy':
+            permission_classes = [IsAuthenticated, IsNotModerator]
+        else:
+            permission_classes = [IsAuthenticated, IsOwnerOrStaffOrModerator]
+        return [permission() for permission in permission_classes]
 
     def get_queryset(self):
         if self.request.user.groups.filter(name='moderator').exists():
@@ -75,6 +75,7 @@ class LessonListAPIView(generics.ListAPIView):
     permission_classes = [IsOwnerOrStaffOrModerator] # work
     # permission_classes = [ModeratorPermission]
 
+
     def get_queryset(self):
         if self.request.user.groups.filter(name='moderator').exists():
             return Lesson.objects.all()
@@ -99,7 +100,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     """Удаляем 1 урок по pk"""
     # serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [ModeratorPermission]  # work
+    permission_classes = [IsOwner]  # work
 
 
 # платежи
