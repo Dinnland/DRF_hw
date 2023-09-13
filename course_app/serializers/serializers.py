@@ -3,22 +3,23 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.relations import SlugRelatedField
 
 from course_app.models import Course, Lesson, Payment
+from course_app.validators import VideoUrlValidator
 
 
 # Это сериализатор \/
-class CourseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Course
-        fields = '__all__'
+# class CourseSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Course
+#         fields = '__all__'
 
 
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = '__all__'
+        validators = [VideoUrlValidator(fields=['video_url'])]
 
-
-class CourseListSerializer(serializers.ModelSerializer):
+class CourseSerializer(serializers.ModelSerializer):
     count_of_lessons = serializers.SerializerMethodField()  # read_only=True
     lesson = LessonSerializer(source='lessons', many=True, read_only=True)
     # lesson = SerializerMethodField(read_only=True)
