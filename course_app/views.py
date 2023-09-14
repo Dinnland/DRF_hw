@@ -2,12 +2,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, generics
 from rest_framework.generics import ListAPIView
 from rest_framework.filters import OrderingFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
-from course_app.models import Course, Lesson, Payment
+from course_app.models import Course, Lesson, Payment, Subscription
+from course_app.paginators import CourseAppPaginator
 from course_app.permissions import IsOwnerOrStaffOrModerator, IsNotModerator, ModeratorPermission, IsOwner
-from course_app.serializers.serializers import CourseSerializer, LessonSerializer, PaymentSerializer
+from course_app.serializers.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, \
+    SubscriptionSerializer
+
+
+# КУРС -------------------------------------------------------------------------------------------------------------
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -15,6 +20,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
     # permission_classes = [ModeratorPermission]
+    pagination_class = CourseAppPaginator
 
     def get_permissions(self):
         """
@@ -48,12 +54,15 @@ class CourseViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 
+# УРОКИ -----------------------------------------------------------------------------------------------------------
+
+
 class LessonCreateAPIView(generics.CreateAPIView):
     """Создаем урок (Lesson)"""
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated, IsNotModerator]  # work
     # permission_classes = [IsAuthenticated, ModeratorPermission]  # err get_queryset, queryset
-
+    # permission_classes = [AllowAny]
     def perform_create(self, serializer):
         # автоматом пользователь, создавая урок, становится владельцем
         new_lesson = serializer.save()
@@ -72,9 +81,9 @@ class LessonListAPIView(generics.ListAPIView):
     """Получаем список уроков"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsOwnerOrStaffOrModerator] # work
+    permission_classes = [IsOwnerOrStaffOrModerator]  # work
     # permission_classes = [ModeratorPermission]
-
+    pagination_class = CourseAppPaginator
 
     def get_queryset(self):
         if self.request.user.groups.filter(name='moderator').exists():
@@ -103,7 +112,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     permission_classes = [IsOwner]  # work
 
 
-# платежи
+# ПЛАТЕЖ -----------------------------------------------------------------------------------------------------------
 
 
 class PaymentListAPIView(generics.ListAPIView):
@@ -116,3 +125,44 @@ class PaymentListAPIView(generics.ListAPIView):
     filterset_fields = ('course', 'lesson', 'payment_type')
     # сортировка по дате оплаты
     ordering_fields = ('date_of_payment',)
+
+
+# ПОДПИСКА ---------------------------------------------------------------------------------------------------------
+
+
+class SubscriptionListAPIView(generics.ListAPIView):
+    """Получаем список уроков"""
+    serializer_class = SubscriptionSerializer
+    queryset = Subscription.objects.all()
+    permission_classes = [IsAuthenticated] # work
+    # permission_classes = [ModeratorPermission]
+    # pagination_class = CourseAppPaginator
+
+    def get_queryset(self):
+        # if self.request.user.groups.filter(name='moderator').exists():
+        #     return Lesson.objects.all()
+        # return Lesson.objects.filter(owner=self.request.user)
+        return Subscription.objects.all()
+
+
+class SubscriptionCreateAPIView(generics.CreateAPIView):
+    """Создаем подписку (Subscription)"""
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated, IsNotModerator]
+    # queryset = Subscription.objects.all()
+
+    def perform_create(self, serializer):
+        # автоматом пользователь, создавая подписку, становится владельцем
+        new_subscription = serializer.save()
+        # print(F'HUI====={self.request.user}'
+        #       F'PIZDA===={self.kwargs["pk"]}')
+        new_subscription.user = self.request.user
+        new_subscription.Course = self.kwargs["pk"]
+
+        new_subscription.save()
+
+
+class SubscriptionDestroyAPIView(generics.DestroyAPIView):
+    """Удаляем 1 по pk"""
+    queryset = Subscription.objects.all()
