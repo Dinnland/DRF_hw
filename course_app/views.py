@@ -1,18 +1,23 @@
+import stripe
+from django.conf import settings
+from django.http import JsonResponse
+from django.views import View
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, generics
-from rest_framework.generics import ListAPIView
+from rest_framework import viewsets, generics, serializers
+from rest_framework.generics import ListAPIView, get_object_or_404
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
+# from rest_framework.response import Response
 
 from course_app.models import Course, Lesson, Payment, Subscription
 from course_app.paginators import CourseAppPaginator
 from course_app.permissions import IsOwnerOrStaffOrModerator, IsNotModerator, ModeratorPermission, IsOwner
 from course_app.serializers.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, \
-    SubscriptionSerializer
+    SubscriptionSerializer, PaymentCreateSerializer, PaymentRetrieveSerializer
+from course_app.services import retrieve_session, get_session
 
 
-# КУРС -------------------------------------------------------------------------------------------------------------
+# Course -------------------------------------------------------------------------------------------------------------
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -54,7 +59,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 
-# УРОКИ -----------------------------------------------------------------------------------------------------------
+# Lesson -----------------------------------------------------------------------------------------------------------
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -112,7 +117,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     permission_classes = [IsOwner]  # work
 
 
-# ПЛАТЕЖ -----------------------------------------------------------------------------------------------------------
+# Payment -----------------------------------------------------------------------------------------------------------
 
 
 class PaymentListAPIView(generics.ListAPIView):
@@ -127,7 +132,41 @@ class PaymentListAPIView(generics.ListAPIView):
     ordering_fields = ('date_of_payment',)
 
 
-# ПОДПИСКА ---------------------------------------------------------------------------------------------------------
+class PaymentCreateAPIView(generics.CreateAPIView):
+    """ Создаем платеж - Payment"""
+    serializer_class = PaymentCreateSerializer
+    queryset = Payment.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        lesson = serializer.validated_data.get('lesson')
+        course = serializer.validated_data.get('course')
+        if not lesson and not course:
+            raise serializers.ValidationError({
+                'non_empty_fields': 'Заполните поле: lesson или course'
+            })
+        new_pay = serializer.save()
+        new_pay.user = self.request.user
+        new_pay.session = get_session(new_pay).id
+        new_pay.save()
+
+
+class PaymentRetrieveAPIView(generics.RetrieveAPIView):
+    """ Получаем список Payment"""
+    serializer_class = PaymentRetrieveSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Payment.objects.all()
+
+    def get_object(self):
+        obj = get_object_or_404(self.get_queryset(), pk=self.kwargs['pk'])
+        session = retrieve_session(obj.session)
+        if session.payment_status == 'paid' and session.status == 'complete':
+            obj.is_paid = True
+            obj.save()
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+# Subscription ---------------------------------------------------------------------------------------------------------
 
 
 class SubscriptionListAPIView(generics.ListAPIView):
@@ -155,10 +194,9 @@ class SubscriptionCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         # автоматом пользователь, создавая подписку, становится владельцем
         new_subscription = serializer.save()
-        # print(F'HUI====={self.request.user}'
-        #       F'PIZDA===={self.kwargs["pk"]}')
+
         new_subscription.user = self.request.user
-        new_subscription.Course = self.kwargs["pk"]
+        # new_subscription.Course = self.kwargs["pk"]
 
         new_subscription.save()
 
@@ -166,3 +204,49 @@ class SubscriptionCreateAPIView(generics.CreateAPIView):
 class SubscriptionDestroyAPIView(generics.DestroyAPIView):
     """Удаляем 1 по pk"""
     queryset = Subscription.objects.all()
+
+
+# STRIPE - оплата --------------------------------------------------------------------------------------------------
+
+#
+# stripe.api_key = settings.STRIPE_SECRET_KEY
+#
+# class CreateCheckoutSessionView(View):
+#
+#
+#
+#     def post(self, request, *args, **kwargs):
+#
+#         payment_id = self.kwargs["pk"]
+#         payment = Payment.objects.get(id=payment_id)
+#         YOUR_DOMAIN = "http://127.0.0.1:8000"
+#         payment_name = payment.user + payment.date_of_payment
+#         checkout_session = stripe.checkout.Session.create(
+#             # тут наверное надо иф
+#             payment_method_types=['card'],
+#             line_items=[
+#                 {
+#                     'price_data': {
+#                         'currency': 'rub',
+#                         'unit_amount': payment.payment_amount,
+#                         'product_data': {
+#                             # можно подумать конечно
+#                             'name': payment_name
+#                         },
+#                     },
+#                     'quantity': 1,
+#                 },
+#             ],
+#             metadata={
+#                 "product_id": payment.id
+#             },
+#             mode='payment',
+#             success_url=YOUR_DOMAIN + '/success/',
+#             cancel_url=YOUR_DOMAIN + '/cancel/',
+#             # надеюсь сработает
+#             customer_email=Payment.user,
+#         )
+#         # хмммммммммм
+#         return JsonResponse({
+#             'id': checkout_session.id
+#         })
