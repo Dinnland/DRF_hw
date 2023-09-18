@@ -64,8 +64,11 @@ class Payment(models.Model):
                                related_name='courses', **NULLABLE)
     lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE, verbose_name='оплаченный урок',
                                related_name='lessons', **NULLABLE)
-    payment_amount = models.FloatField(verbose_name='сумма оплаты')
+    payment_amount = models.IntegerField(verbose_name='сумма оплаты')
     payment_type = models.CharField(max_length=15, choices=PAYMENT_TYPE, verbose_name='способ оплаты')
+
+    is_paid = models.BooleanField(default=False, verbose_name='статус оплаты')
+    session = models.CharField(max_length=180, verbose_name='сессия для оплаты', **NULLABLE)
 
     class Meta:
         verbose_name = 'Платеж'

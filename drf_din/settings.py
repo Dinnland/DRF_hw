@@ -52,9 +52,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
+    'drf_yasg',    # Документация
+    'corsheaders',    # CORS (Cross-Origin Resource Sharing) — это механизм безопасности браузера
+
+    # other
+    'stripe',
+
     # my apps
-    'users',
-    'course_app',
+    'users',    # Пользователи
+    'course_app',   # Курс: курс, уроки, подписки, платежи и т.д.
 ]
 
 
@@ -73,6 +79,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    #
+    'corsheaders.middleware.CorsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'drf_din.urls'
@@ -210,3 +220,16 @@ if CACHE_ENABLED:
         }
 
 
+CORS_ALLOWED_ORIGINS = [
+    "https://localhost:8000",  # Замените на адрес вашего фронтенд-сервера
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://read-and-write.example.com",  # Замените на адрес вашего фронтенд-сервера
+    # и добавьте адрес бэкенд-сервера
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
+
+STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
