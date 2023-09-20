@@ -14,7 +14,8 @@ from course_app.paginators import CourseAppPaginator
 from course_app.permissions import IsOwnerOrStaffOrModerator, IsNotModerator, ModeratorPermission, IsOwner
 from course_app.serializers.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, \
     SubscriptionSerializer, PaymentCreateSerializer, PaymentRetrieveSerializer
-from course_app.services import retrieve_session, get_session
+from course_app.services import retrieve_session, get_session, get_emails
+from course_app.tasks import  message_update_course
 
 
 # Course -------------------------------------------------------------------------------------------------------------
@@ -52,6 +53,15 @@ class CourseViewSet(viewsets.ModelViewSet):
         new_course.owner = self.request.user
         new_course.save()
 
+    def update(self, request, *args, **kwargs):
+        subscriptions = Subscription.objects.filter(user=request.user)
+        print(subscriptions)
+        emails = get_emails(subscriptions)
+        print(emails)
+
+        message_update_course.delay(emails)
+        return super().update(request, *args, **kwargs)
+
     def perform_update(self, serializer):
         upd_course = serializer.save()
 
@@ -74,6 +84,8 @@ class LessonCreateAPIView(generics.CreateAPIView):
         new_lesson.owner = self.request.user
         new_lesson.save()
 
+
+
     # def get_queryset(self):
     #     if self.request.user.groups.filter(name='moderator').exists():
     #         return Course.objects.all()
@@ -93,6 +105,7 @@ class LessonListAPIView(generics.ListAPIView):
     def get_queryset(self):
         if self.request.user.groups.filter(name='moderator').exists():
             return Lesson.objects.all()
+        # print(my_task.delay(1))
         return Lesson.objects.filter(owner=self.request.user)
 
 
