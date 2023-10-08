@@ -18,9 +18,13 @@ urlpatterns = [
     path('lesson/update/<int:pk>/', LessonUpdateAPIView.as_view(), name='lesson-update'),
     path('lesson/delete/<int:pk>/', LessonDestroyAPIView.as_view(), name='lesson-delete'),
 
-    path('course/list/', CourseListAPIView.as_view(), name='course-list'),
     path('payment/list/', PaymentListAPIView.as_view(), name='payment-list'),
+    path('payment/create/', PaymentCreateAPIView.as_view(), name='payment-create'),
+    path('payment/<int:pk>/retrieve/', PaymentRetrieveAPIView.as_view(), name='payment-retrieve'),
 
-
+    # path('course/<int:pk>/subscribe/', SubscriptionCreateAPIView.as_view(), name='course-subscribe'),
+    path('course/subscribe/', SubscriptionCreateAPIView.as_view(), name='course-subscribe'),
+    path('subscription/list/', SubscriptionListAPIView.as_view(), name='subscription-list'),
+    path('subscription/<int:pk>/delete/', SubscriptionDestroyAPIView.as_view(), name='subscription-destroy'),
 
 ] + router.urls

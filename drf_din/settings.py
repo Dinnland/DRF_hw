@@ -52,25 +52,23 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
+    'drf_yasg',    # Документация
+    'corsheaders',    # CORS (Cross-Origin Resource Sharing) — это механизм безопасности браузера
+
+    # other
+    'stripe',
+    'django_celery_beat',
+
     # my apps
-    'users',
-    'course_app',
+    'users',    # Пользователи
+    'course_app',   # Курс: курс, уроки, подписки, платежи и т.д.
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': (
-        'django_filters.rest_framework.DjangoFilterBackend',
 
-    ),
-    # Настройки JWT-токенов
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
-}
 
 # Настройки срока действия токенов
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=180),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
@@ -82,6 +80,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    #
+    'corsheaders.middleware.CorsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'drf_din.urls'
@@ -187,6 +189,26 @@ EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL') == 'True'
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+
+    ),
+    # Настройки JWT-токенов
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # ВСЕ ЗАКРЫВАЕТСЯ АУТЕНТИФИКАЦИЕЙ
+    'DEFAULT_PERMISSION_CLASSES': [
+            'rest_framework.permissions.IsAuthenticated',
+        ],
+    # # По отдельности ЗАКРЫВАЕТСЯ АУТЕНТИФИКАЦИЕЙ
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #    'rest_framework.permissions.AllowAny',
+    #       ],
+
+}
+
 # CACHE_ENABLED = True
 CACHE_ENABLED = False
 
@@ -199,3 +221,45 @@ if CACHE_ENABLED:
         }
 
 
+CORS_ALLOWED_ORIGINS = [
+    "https://localhost:8000",  # Замените на адрес вашего фронтенд-сервера
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://read-and-write.example.com",  # Замените на адрес вашего фронтенд-сервера
+    # и добавьте адрес бэкенд-сервера
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
+
+STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+
+# SELERY ---------------------------------------------------------------------------
+
+# URL-адрес брокера сообщений
+CELERY_BROKER_URL = 'redis://localhost:6379/0'    # Например, Redis, который по умолчанию работает на порту 6379
+
+# URL-адрес брокера результатов, также Redis
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Часовой пояс для работы Celery
+CELERY_TIMEZONE = "Europe/Moscow"
+
+# Флаг отслеживания выполнения задач
+CELERY_TASK_TRACK_STARTED = True
+
+# Максимальное время на выполнение задачи
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+# CELERY_BROKER_HEARTBEAT = 0
+
+# # Настройки для Celery - Установка расписания
+# CELERY_BEAT_SCHEDULE = {
+#     'task-name': {
+#         'task': 'drf_din.tasks.my_task',  # Путь к задаче
+#         'schedule': timedelta(minutes=10),  # Расписание выполнения задачи
+#     },
+# }
+
+# SELERY ---------------------------------------------------------------------------
