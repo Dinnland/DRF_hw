@@ -64,8 +64,6 @@ INSTALLED_APPS = [
     'course_app',   # Курс: курс, уроки, подписки, платежи и т.д.
 ]
 
-
-
 # Настройки срока действия токенов
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=180),
@@ -83,7 +81,6 @@ MIDDLEWARE = [
 
     #
     'corsheaders.middleware.CorsMiddleware',
-
 ]
 
 ROOT_URLCONF = 'drf_din.urls'
@@ -113,15 +110,17 @@ WSGI_APPLICATION = 'drf_din.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-
         'ENGINE': os.getenv('ENGINE'),
-        'NAME': os.getenv('NAME'),
-        'USER': os.getenv('USER'),
-        'PASSWORD': os.getenv('PASSWORD'),
-        'HOST': os.getenv('HOST'),
         'PORT': os.getenv('PORT'),
+        # 'NAME': os.getenv('NAME'),
+        # 'USER': os.getenv('USER'),
+        # 'PASSWORD': os.getenv('PASSWORD'),
+        # 'HOST': os.getenv('HOST'),
+
+        'NAME': os.getenv('DOCKER_DB_NAME'),
+        'USER': os.getenv('DOCKER_DB_USER'),
+        'PASSWORD': os.getenv('DOCKER_DB_PASSWORD'),
+        'HOST': os.getenv('DOCKER_DB_HOST'),
     }
 }
 
@@ -209,8 +208,7 @@ REST_FRAMEWORK = {
 
 }
 
-# CACHE_ENABLED = True
-CACHE_ENABLED = False
+CACHE_ENABLED = os.getenv('CACHE_ENABLED') == 'True'
 
 if CACHE_ENABLED:
     CACHES = {
@@ -238,7 +236,8 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 # SELERY ---------------------------------------------------------------------------
 
 # URL-адрес брокера сообщений
-CELERY_BROKER_URL = 'redis://localhost:6379/0'    # Например, Redis, который по умолчанию работает на порту 6379
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'    # Например, Redis, который по умолчанию работает на порту 6379
+CELERY_BROKER_URL = 'redis://redis:6379/0'
 
 # URL-адрес брокера результатов, также Redis
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'

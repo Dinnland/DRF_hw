@@ -7,10 +7,10 @@ WORKDIR /app
 # Копируем зависимости в контейнер
 COPY requirements.txt .
 
-# Устанавливаем зависимости
-RUN pip install --no-cache-dir -r requirements.txt
+# Устанавливаем зависимости  --no-cache-dir
+RUN pip install -r requirements.txt
 
 # Копируем код приложения в контейнер
 COPY . .
 
-CMD ["python", "app.py"]
+#CMD ["python", "app.py", "runserver"]

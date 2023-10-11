@@ -1,0 +1,60 @@
+version: '3'
+services:
+
+  db:
+    image: postgres
+#    container_name: db_app
+    environment:
+      POSTGRES_DB: ${DOCKER_DB_NAME}
+      POSTGRES_USER: ${DOCKER_DB_USER}
+      POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD}
+
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pg_data:/var/lib/postgresql/data/pgdata
+    ports:
+      - '5432:5432'
+    # Проверка бд, для корректного подключения
+    healthcheck:
+      #      test: [ "CMD-SHELL", "pg_isready" ]
+      test: [ "CMD-SHELL", "pg_isready -d postgres -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+#    container_name: web_app
+    # flag -t, 'command' in terminal
+    tty: true
+    command: python manage.py migrate && python manage.py runserver 0.0.0.0:8000
+    # volumes нужен, чтобы динамически исходники кода менялись
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8000"
+#      - '5432:5432'
+    depends_on:
+      db:
+        condition: service_healthy
+#    environment:
+#      - REDIS_HOST=redis
+
+  redis:
+    container_name: redis_app
+    image: redis
+    ports:
+      - '6380:6378'
+      - '9999:8001'
+
+  celery:
+    build: .
+    container_name: celery_app
+    tty: true
+    command: celery -A drf_din worker --pool=eventlet -l info
+    depends_on:
+      - redis
+      - web
+
+volumes:
+  pg_data:

@@ -15,7 +15,7 @@ from course_app.permissions import IsOwnerOrStaffOrModerator, IsNotModerator, Mo
 from course_app.serializers.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, \
     SubscriptionSerializer, PaymentCreateSerializer, PaymentRetrieveSerializer
 from course_app.services import retrieve_session, get_session, get_emails
-from course_app.tasks import  message_update_course
+from course_app.tasks import message_update_course
 
 
 # Course -------------------------------------------------------------------------------------------------------------
@@ -78,6 +78,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated, IsNotModerator]  # work
     # permission_classes = [IsAuthenticated, ModeratorPermission]  # err get_queryset, queryset
     # permission_classes = [AllowAny]
+
     def perform_create(self, serializer):
         # автоматом пользователь, создавая урок, становится владельцем
         new_lesson = serializer.save()
