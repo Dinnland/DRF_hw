@@ -7,7 +7,7 @@ from users.models import User
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        # Очистка бд, крома админа
+        # Очистка бд, кроме админа
         for u in User.objects.all():
             if not u.is_superuser:
                 u.delete()

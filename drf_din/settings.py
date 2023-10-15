@@ -112,15 +112,11 @@ DATABASES = {
     'default': {
         'ENGINE': os.getenv('ENGINE'),
         'PORT': os.getenv('PORT'),
-        # 'NAME': os.getenv('NAME'),
-        # 'USER': os.getenv('USER'),
-        # 'PASSWORD': os.getenv('PASSWORD'),
-        # 'HOST': os.getenv('HOST'),
 
-        'NAME': os.getenv('DOCKER_DB_NAME'),
-        'USER': os.getenv('DOCKER_DB_USER'),
-        'PASSWORD': os.getenv('DOCKER_DB_PASSWORD'),
-        'HOST': os.getenv('DOCKER_DB_HOST'),
+        'NAME': os.getenv('NAME'),
+        'USER': os.getenv('USER'),
+        'PASSWORD': os.getenv('PASSWORD'),
+        'HOST': os.getenv('HOST'),
     }
 }
 
@@ -236,11 +232,13 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 # SELERY ---------------------------------------------------------------------------
 
 # URL-адрес брокера сообщений
-# CELERY_BROKER_URL = 'redis://localhost:6379/0'    # Например, Redis, который по умолчанию работает на порту 6379
-CELERY_BROKER_URL = 'redis://redis:6379/0'
+# Например, Redis, который по умолчанию работает на порту 6379
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 
 # URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 
 # Часовой пояс для работы Celery
 CELERY_TIMEZONE = "Europe/Moscow"
